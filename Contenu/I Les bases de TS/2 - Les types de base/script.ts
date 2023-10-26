@@ -6,8 +6,8 @@ let obj = {
 }
 let toggle = true
 
-let anything;
-let randomNumber: number;
+let anything
+let randomNumber: number
 
 const conversion = (celsius: number) => {
   return (celsius * 9/5) + 32
