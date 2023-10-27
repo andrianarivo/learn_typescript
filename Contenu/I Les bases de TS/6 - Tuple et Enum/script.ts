@@ -6,9 +6,9 @@ const tuple: [boolean, number] = [true, 1]
 // Enum
 
 const _Roles = {
-    JAVASCRIPT: 1,
-    TYPESCRIPT: 2,
-    ANGULAR: 3
+  JAVASCRIPT: 1,
+  TYPESCRIPT: 2,
+  ANGULAR: 3
 }
 
 console.log(_Roles.JAVASCRIPT)
