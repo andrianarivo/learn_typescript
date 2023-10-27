@@ -21,6 +21,7 @@ function addContainerListeners(currentContainer: HTMLDivElement) {
   addItemBtnListeners(currentAddItemBtn)
   closingFormBtnListeners(currentCloseFormBtn)
   addFormSubmitListeners(currentForm)
+  addDDListeners(currentContainer)
 }
 
 function deleteBtnListeners(btn: HTMLButtonElement) {
@@ -100,12 +101,73 @@ function createNewItem(e: Event) {
   const item = actualUl.lastElementChild as HTMLLIElement
   const liBtn = item.querySelector('button') as HTMLButtonElement
   handleItemDeletion(liBtn)
+  addDDListeners(item)
 }
 
 function handleItemDeletion(btn: HTMLButtonElement) {
   btn.addEventListener('click', () => {
     btn.parentElement?.remove()
   })
+}
+
+function addDDListeners(container: HTMLElement) {
+  container.addEventListener('dragstart', handleDragStart)
+  container.addEventListener('dragover', handleDragOver)
+  container.addEventListener('drop', handleDrop)
+  container.addEventListener('dragend', handleDragEnd)
+}
+
+// Drag And Drop
+let dragSrcEl: HTMLElement
+
+function handleDragStart(this: HTMLElement, e: DragEvent) {
+  e.stopPropagation()
+
+  if (actualContainer) {
+    toggleForm(actualBtn, actualForm, false)
+  }
+
+  dragSrcEl = this
+  e.dataTransfer?.setData('text/html', this.innerHTML)
+}
+
+function handleDragOver(e: DragEvent) {
+  e.preventDefault()
+}
+
+function handleDrop(this: HTMLElement, e: DragEvent) {
+  e.stopPropagation()
+  const receptionEl = this
+
+  if (dragSrcEl.nodeName === "LI" && receptionEl.classList.contains("items-container")) {
+    (receptionEl.querySelector('ul') as HTMLUListElement).appendChild(dragSrcEl)
+    addDDListeners(dragSrcEl)
+    handleItemDeletion(dragSrcEl.querySelector('button') as HTMLButtonElement)
+  }
+
+  if (dragSrcEl !== this && this.classList[0] === dragSrcEl.classList[0]) {
+    dragSrcEl.innerHTML = this.innerHTML
+    this.innerHTML = e.dataTransfer?.getData('text/html') as string
+    restoreListenersAfterDrag(this)
+  }
+}
+
+function restoreListenersAfterDrag(element: HTMLElement) {
+  if (element.classList.contains('items-container')) {
+    addContainerListeners(element as HTMLDivElement)
+    element.querySelectorAll('li').forEach((li: HTMLLIElement) => {
+      handleItemDeletion(li.querySelector('button') as HTMLButtonElement)
+      addDDListeners(li)
+    })
+  } else {
+    addDDListeners(element)
+    handleItemDeletion(element.querySelector('button') as HTMLButtonElement)
+  }
+}
+
+function handleDragEnd(this: HTMLElement, e: DragEvent) {
+  e.stopPropagation()
+  restoreListenersAfterDrag(this)
 }
 
 // Add New Container

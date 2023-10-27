@@ -13,6 +13,7 @@ function addContainerListeners(currentContainer) {
     addItemBtnListeners(currentAddItemBtn);
     closingFormBtnListeners(currentCloseFormBtn);
     addFormSubmitListeners(currentForm);
+    addDDListeners(currentContainer);
 }
 function deleteBtnListeners(btn) {
     btn.addEventListener('click', handleContainerDeletion);
@@ -83,12 +84,65 @@ function createNewItem(e) {
     const item = actualUl.lastElementChild;
     const liBtn = item.querySelector('button');
     handleItemDeletion(liBtn);
+    addDDListeners(item);
 }
 function handleItemDeletion(btn) {
     btn.addEventListener('click', () => {
         var _a;
         (_a = btn.parentElement) === null || _a === void 0 ? void 0 : _a.remove();
     });
+}
+function addDDListeners(container) {
+    container.addEventListener('dragstart', handleDragStart);
+    container.addEventListener('dragover', handleDragOver);
+    container.addEventListener('drop', handleDrop);
+    container.addEventListener('dragend', handleDragEnd);
+}
+// Drag And Drop
+let dragSrcEl;
+function handleDragStart(e) {
+    var _a;
+    e.stopPropagation();
+    if (actualContainer) {
+        toggleForm(actualBtn, actualForm, false);
+    }
+    dragSrcEl = this;
+    (_a = e.dataTransfer) === null || _a === void 0 ? void 0 : _a.setData('text/html', this.innerHTML);
+}
+function handleDragOver(e) {
+    e.preventDefault();
+}
+function handleDrop(e) {
+    var _a;
+    e.stopPropagation();
+    const receptionEl = this;
+    if (dragSrcEl.nodeName === "LI" && receptionEl.classList.contains("items-container")) {
+        receptionEl.querySelector('ul').appendChild(dragSrcEl);
+        addDDListeners(dragSrcEl);
+        handleItemDeletion(dragSrcEl.querySelector('button'));
+    }
+    if (dragSrcEl !== this && this.classList[0] === dragSrcEl.classList[0]) {
+        dragSrcEl.innerHTML = this.innerHTML;
+        this.innerHTML = (_a = e.dataTransfer) === null || _a === void 0 ? void 0 : _a.getData('text/html');
+        restoreListenersAfterDrag(this);
+    }
+}
+function restoreListenersAfterDrag(element) {
+    if (element.classList.contains('items-container')) {
+        addContainerListeners(element);
+        element.querySelectorAll('li').forEach((li) => {
+            handleItemDeletion(li.querySelector('button'));
+            addDDListeners(li);
+        });
+    }
+    else {
+        addDDListeners(element);
+        handleItemDeletion(element.querySelector('button'));
+    }
+}
+function handleDragEnd(e) {
+    e.stopPropagation();
+    restoreListenersAfterDrag(this);
 }
 // Add New Container
 const addContainerBtn = document.querySelector('.add-container-btn');
