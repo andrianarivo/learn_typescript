@@ -7,6 +7,22 @@ let actualContainer: HTMLDivElement,
     actualTextInput: HTMLInputElement,
     actualValidation: HTMLSpanElement
 
+itemsContainer.forEach((container) => {
+  addContainerListeners(container)
+});
+
+function addContainerListeners(currentContainer: HTMLDivElement) {
+  const currentContainerDeletionBtn = currentContainer.querySelector('.delete-container-btn') as HTMLButtonElement
+  const currentAddItemBtn = currentContainer.querySelector('.add-item-btn') as HTMLButtonElement
+  const currentCloseFormBtn = currentContainer.querySelector('.close-form-btn') as HTMLButtonElement
+  const currentForm = currentContainer.querySelector('form') as HTMLFormElement
+
+  deleteBtnListeners(currentContainerDeletionBtn)
+  addItemBtnListeners(currentAddItemBtn)
+  closingFormBtnListeners(currentCloseFormBtn)
+  addFormSubmitListeners(currentForm)
+}
+
 function deleteBtnListeners(btn: HTMLButtonElement) {
   btn.addEventListener('click', handleContainerDeletion)
 }
@@ -22,13 +38,13 @@ function addItemBtnListeners(btn: HTMLButtonElement) {
   btn.addEventListener('click', handleAddItem)
 }
 
-function setContainerItem(btn: HTMLButtonElement) {
-  actualBtn = btn
-  actualContainer = btn.parentElement as HTMLDivElement
-  actualUl = actualContainer.querySelector('ul') as HTMLUListElement
-  actualForm = actualContainer.querySelector('form') as HTMLFormElement
-  actualTextInput = actualForm.querySelector('input') as HTMLInputElement
-  actualValidation = actualForm.querySelector('.validation-msg') as HTMLSpanElement
+function handleAddItem(e: MouseEvent) {
+  const btn = e.target as HTMLButtonElement
+  if (actualContainer) {
+    toggleForm(actualBtn, actualForm, false)
+  }
+  setContainerItem(btn)
+  toggleForm(actualBtn, actualForm, true)
 }
 
 function toggleForm(btn: HTMLButtonElement, form: HTMLFormElement, action: boolean) {
@@ -41,22 +57,53 @@ function toggleForm(btn: HTMLButtonElement, form: HTMLFormElement, action: boole
   }
 }
 
-function handleAddItem(e: MouseEvent) {
-  const btn = e.target as HTMLButtonElement
-  if (actualContainer) {
+function setContainerItem(btn: HTMLButtonElement) {
+  actualBtn = btn
+  actualContainer = btn.parentElement as HTMLDivElement
+  actualUl = actualContainer.querySelector('ul') as HTMLUListElement
+  actualForm = actualContainer.querySelector('form') as HTMLFormElement
+  actualTextInput = actualForm.querySelector('input') as HTMLInputElement
+  actualValidation = actualForm.querySelector('.validation-msg') as HTMLSpanElement
+}
+
+function closingFormBtnListeners(btn: HTMLButtonElement) {
+  btn.addEventListener('click', () => {
     toggleForm(actualBtn, actualForm, false)
+  })
+}
+
+function addFormSubmitListeners(form: HTMLFormElement) {
+  form.addEventListener('submit', createNewItem)
+}
+
+function createNewItem(e: Event) {
+  e.preventDefault()
+  // Validation
+  if (actualTextInput.value.length === 0) {
+    actualValidation.textContent = "Must be at least 1 character long"
+    return
+  } else {
+    actualValidation.textContent = ""
+
   }
-  setContainerItem(btn)
-  toggleForm(actualBtn, actualForm, true)
+  // Création Item
+  const itemContent = actualTextInput.value
+  const li = `
+    <li class="item" draggable="true">
+      <p>${itemContent}</p>
+      <button>X</button>
+    </li>
+  `
+  actualUl.insertAdjacentHTML('beforeend', li)
+  actualTextInput.value = ""
+
+  const item = actualUl.lastElementChild as HTMLLIElement
+  const liBtn = item.querySelector('button') as HTMLButtonElement
+  handleItemDeletion(liBtn)
 }
 
-function addContainerListeners(currentContainer: HTMLDivElement) {
-  const currentContainerDeletionBtn = currentContainer.querySelector('.delete-container-btn') as HTMLButtonElement
-  const currentAddItemBtn = currentContainer.querySelector('.add-item-btn') as HTMLButtonElement
-  deleteBtnListeners(currentContainerDeletionBtn)
-  addItemBtnListeners(currentAddItemBtn)
+function handleItemDeletion(btn: HTMLButtonElement) {
+  btn.addEventListener('click', () => {
+    btn.parentElement?.remove()
+  })
 }
-
-itemsContainer.forEach((container) => {
-  addContainerListeners(container)
-});
